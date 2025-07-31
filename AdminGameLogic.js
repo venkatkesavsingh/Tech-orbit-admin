@@ -3,7 +3,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCArsZCLerFM_JA79r4xiq153ENGc1S7JE",
   authDomain: "kattappa-mama.firebaseapp.com",
   projectId: "kattappa-mama",
-  storageBucket: "kattappa-mama.firebasestorage.app",
+  storageBucket: "kattappa-mama.appspot.com",
   messagingSenderId: "725489768693",
   appId: "1:725489768693:web:d6f0dec4a2d17ebf558dbc",
   measurementId: "G-6HDYWBCRNQ"
