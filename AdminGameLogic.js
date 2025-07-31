@@ -3,7 +3,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCArsZCLerFM_JA79r4xiq153ENGc1S7JE",
   authDomain: "kattappa-mama.firebaseapp.com",
   projectId: "kattappa-mama",
-  storageBucket: "kattappa-mama.appspot.com",
+  storageBucket: "kattappa-mama.firebasestorage.app",
   messagingSenderId: "725489768693",
   appId: "1:725489768693:web:d6f0dec4a2d17ebf558dbc",
   measurementId: "G-6HDYWBCRNQ"
@@ -237,7 +237,11 @@ function loadTeamsAndDisplay(showOffline = false) {
 
   db.collection("Tech-Orbit").doc(room).collection("Teams")
     .get()
-    .then(snapshot => {
+    .then(async snapshot => {
+      // Get current question number from room document
+      const roomDoc = await db.collection("Tech-Orbit").doc(room).get();
+      const currentQuestionNumber = roomDoc.exists && roomDoc.data().currentQuestion?.questionNumber;
+
       snapshot.forEach(doc => {
         const teamData = doc.data();
 
@@ -255,6 +259,9 @@ function loadTeamsAndDisplay(showOffline = false) {
           div.classList.add("offline");
         }
 
+        // Disable buttons if team already marked for current question
+        const alreadyMarked = teamData.lastResultQuestion === currentQuestionNumber;
+
         div.innerHTML = `
           <div class="team-header">
             <strong class="team-name">${teamData.teamName || doc.id}</strong>
@@ -266,8 +273,8 @@ function loadTeamsAndDisplay(showOffline = false) {
           <div class="team-info">
             <div class="team-points">Points: ${teamData.points || 0}</div>
             <div class="action-buttons">
-              <button class="btn-correct" onclick="markAnswer('${doc.id}', true)">✅ Correct</button>
-              <button class="btn-wrong" onclick="markAnswer('${doc.id}', false)">❌ Wrong</button>
+              <button class="btn-correct" onclick="markAnswer('${doc.id}', true)" ${alreadyMarked ? 'disabled' : ''}>✅ Correct</button>
+              <button class="btn-wrong" onclick="markAnswer('${doc.id}', false)" ${alreadyMarked ? 'disabled' : ''}>❌ Wrong</button>
             </div>
           </div>
         `;
@@ -290,10 +297,15 @@ window.markAnswer = async function(teamName, isCorrect) {
 
   const newPoints = isCorrect ? points + bet : points - bet;
 
+  // Get current question number from room document
+  const roomDoc = await db.collection("Tech-Orbit").doc(room).get();
+  const currentQuestionNumber = roomDoc.exists && roomDoc.data().currentQuestion?.questionNumber;
+
   teamRef.update({
     points: newPoints,
     lastResult: isCorrect ? "correct" : "wrong",
-    betlocked: false,
+    lastResultQuestion: currentQuestionNumber || null,
+    betLocked: false,
     currentBet: firebase.firestore.FieldValue.delete()
   }).then(() => {
     console.log(`${teamName} marked as ${isCorrect ? "✅ correct" : "❌ wrong"}`);
