@@ -190,6 +190,12 @@ function initAdminControls() {
     alert("✅ Quiz has been reset successfully!");
     loadTeamsAndDisplay();
 
+    // Hide final scoreboard on reset
+    const finalScoreboard = document.getElementById("final-admin-scoreboard");
+    if (finalScoreboard) {
+      finalScoreboard.style.display = "none";
+    }
+
   } catch (error) {
     console.error("❌ Error resetting quiz:", error);
     alert("❌ Failed to reset quiz. Check console.");
@@ -292,8 +298,8 @@ window.markAnswer = async function(teamName, isCorrect) {
   const teamRef = db.collection("Tech-Orbit").doc(room).collection("Teams").doc(teamName);
   const teamDoc = await teamRef.get();
   const data = teamDoc.data();
-  const bet = data.currentBet || 10;
-  const points = data.points || 0;
+  const bet = Number(data.currentBet) || 10;
+  const points = Number(data.points) || 0;
 
   const newPoints = isCorrect ? points + bet : points - bet;
 
